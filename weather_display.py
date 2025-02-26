@@ -7,17 +7,53 @@
 ##################################################################################
 
 
+# Today
+## Weather
+## Morning - 6am
+## Afternoon - 12pm
+## Evening - 6pm
+## Overnight - 12am
+
+
+# Tomorrow
+## Morning - 6am
+## Afternoon - 12pm
+## Evening - 6pm
+## Overnight - 12am
+
+
+# Next day
+## Morning - 6am
+## Afternoon - 12pm
+## Evening - 6pm
+## Overnight - 12am
+
+
 weather_data = {"list": [
-    {"day": "Monday", "weather": "Sunny", "high_temp": 30, "low_temp": 20},
-    {"day": "Tuesday", "weather": "Cloudy", "high_temp": 25, "low_temp": 15},
-    {"day": "Wednesday", "weather": "Rainy", "high_temp": 28, "low_temp": 18}
+    {
+        "day": "DATA", 
+        "weather": "DATA",
+        "morning_temp": "DATA",
+        "afternoon_temp": "DATA",
+        "evening_temp": "DATA",
+        "overnight_temp": "DATA"
+    },
+    {
+        "day": "DATA", 
+        "weather": "DATA",
+        "morning_temp": "DATA",
+        "afternoon_temp": "DATA",
+        "evening_temp": "DATA",
+        "overnight_temp": "DATA"
+    },
+    {
+        "day": "DATA", 
+        "weather": "DATA",
+        "morning_temp": "DATA",
+        "afternoon_temp": "DATA",
+        "evening_temp": "DATA",
+        "overnight_temp": "DATA"
+    },
+    
 ]}
 
-result_lines = ["#", "#", "#", "#", "#"]
-
-
-for value in weather_data["list"]:
-    result = ''
-    
-    print(value["day"])
-    print(result)
