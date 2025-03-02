@@ -10,13 +10,15 @@ URL =    f"https://api.openweathermap.org/data/2.5/forecast?q={CITY}&appid={API_
 def get_weather_data(testing_state=False):   
      
     if testing_state:
-        with open("weather.json", "r") as file:
+        with open("test_weather_data.json", "r") as file:
             return json.load(file)
         
     else:
         response = requests.get(URL)
 
         if response.status_code == 200:
+            # with open("test_weather_data.json", "w") as json_file:
+            #     json.dump(response.json(), json_file, indent=4)
             return response.json()  
         else:
             print(f"Error: {response.status_code}, Message: {response.text}")

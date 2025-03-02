@@ -8,7 +8,7 @@ from collections import Counter
 
 
 def load_weather_data_from_file():
-    with open("weather.json", "r") as file:
+    with open("test_weather_data.json", "r") as file:
         return json.load(file)
     
     
@@ -59,8 +59,18 @@ def convert_gmt_to_melbourne(time_str):
    
 
 def create_forecast_data(weather_data):
+    times_list = []
     for segment in weather_data["list"]:
         segment["dt_txt"] = convert_gmt_to_melbourne(segment["dt_txt"])
+        if segment["dt_txt"][11:13] not in times_list:
+            times_list.append(segment["dt_txt"][11:13])
+            
+    times_list.sort()
+    morning =   times_list[2]
+    afternoon = times_list[4]
+    evening =   times_list[6]
+    midnight =  times_list[0]
+
 
         
     result = {}
@@ -82,13 +92,13 @@ def create_forecast_data(weather_data):
             }
             
 
-        if segment_hour == "08":
+        if segment_hour == morning:
             result[segment_date]["temperatures"]["morning"] = segment["main"]["temp"]
-        elif segment_hour == "14":
+        elif segment_hour == afternoon:
             result[segment_date]["temperatures"]["afternoon"] = segment["main"]["temp"]
-        elif segment_hour == "20":
+        elif segment_hour == evening:
             result[segment_date]["temperatures"]["evening"] = segment["main"]["temp"]
-        elif segment_hour == "02" and len(result) > 1:                
+        elif segment_hour == midnight and len(result) > 1:                
             result[get_previous_date(segment_date)]["temperatures"]["overnight"] = segment["main"]["temp"]
             
         result[segment_date]["weather_list"].append(segment["weather"][0]["description"])
@@ -106,7 +116,7 @@ if __name__ == "__main__":
     test_data = load_weather_data_from_file()
     forecast_data = create_forecast_data(test_data)
 
-    pp.pprint(forecast_data)
+    # pp.pprint(forecast_data)
 
 
     

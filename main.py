@@ -17,6 +17,3 @@ if weather_data:
 else:
     print("\nFailed to retrieve weather data.")
     
-
-# todo
-# makes times of day dynamically change depending on timezone, could could retrieve all values and pick the first, third, sixth and ninth
