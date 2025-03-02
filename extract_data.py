@@ -1,10 +1,10 @@
 import json
 import pprint as pp
 import numpy as np
+import pytz
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import Counter
-
 
 
 def load_weather_data_from_file():
@@ -12,46 +12,12 @@ def load_weather_data_from_file():
         return json.load(file)
     
     
-def get_day_of_week_in_melbourne(timestamp):
-    """Returns day of the week in melbourne from Unix timstamp
-        e.g. 1740679200 returns Thursday
-
-    Args:
-        timestamp (): unix timestamp, 10 hours in seconds is removed from the 
-        timestamp to account for the timezone
-
-    Returns:
-        str: Day of the week
-    """
-    return datetime.fromtimestamp(timestamp - (10*60*60)).strftime("%A")
-    
-    
 def get_day_of_week_from_date(date_str):
     date_obj = datetime.strptime(date_str, "%Y-%m-%d")
     return date_obj.strftime("%A")
     
     
-def simplify_weather_description(description):    
-
-    # if len(description) != 8:
-    #     print(f"List contained ({len(description)}) items, expected 8")
-    #     return "ERROR"
-
-    # # Approximate bell curve weights for an 8-item list
-    # weights = [0.1, 0.2, 0.4, 0.8, 0.8, 0.4, 0.2, 0.1]
-
-    # # Create a weighted frequency counter
-    # word_weights = Counter()
-    # for word, weight in zip(description, weights):
-    #     word_weights[word] += weight
-
-    # # Return the word with the highest weight
-    # return word_weights.most_common(1)[0][0]
-
-
-
-  # For generating weights
-
+def simplify_weather_description(description):  
     if not description:
         return ""
 
@@ -69,14 +35,39 @@ def simplify_weather_description(description):
     # Return the most weighted word
     return word_weights.most_common(1)[0][0]
 
+ 
+def get_previous_date(date_str):
+    date_obj = datetime.strptime(date_str, "%Y-%m-%d")  # Convert string to datetime
+    previous_date = date_obj - timedelta(days=1)  # Subtract 1 day
+    return previous_date.strftime("%Y-%m-%d")  # Convert back to string
 
 
+def convert_gmt_to_melbourne(time_str):
+    # Define timezones
+    gmt = pytz.timezone("GMT")
+    melbourne = pytz.timezone("Australia/Melbourne")
+
+    # Convert input string to a datetime object in GMT
+    gmt_time = datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S")
+    gmt_time = gmt.localize(gmt_time)  # Set timezone to GMT
+
+    # Convert GMT to Melbourne time
+    melbourne_time = gmt_time.astimezone(melbourne)
+
+    # Return formatted date-time in Melbourne time
+    return melbourne_time.strftime("%Y-%m-%d %H:%M:%S")
+   
 
 def create_forecast_data(weather_data):
+    for segment in weather_data["list"]:
+        segment["dt_txt"] = convert_gmt_to_melbourne(segment["dt_txt"])
+
+        
     result = {}
     for segment in weather_data["list"]:
         segment_date = segment["dt_txt"][:10]
         segment_hour = segment["dt_txt"][11:13]
+        
         if segment_date not in result:
             result[segment_date] = {              
                 "temperatures": {                    
@@ -89,30 +80,36 @@ def create_forecast_data(weather_data):
                 "weather": "",
                 "day": get_day_of_week_from_date(segment_date)
             }
-        else:
-            if segment_hour == "06":
-                result[segment_date]["temperatures"]["morning"] = segment["main"]["temp"]
-            elif segment_hour == "12":
-                result[segment_date]["temperatures"]["afternoon"] = segment["main"]["temp"]
-            elif segment_hour == "18":
-                result[segment_date]["temperatures"]["evening"] = segment["main"]["temp"]
-            elif segment_hour == "21": #NOT TAKING TEMPERATURE FROM MIDNIGHT AS INTENDED
-                result[segment_date]["temperatures"]["overnight"] = segment["main"]["temp"]
-                
-                
-            result[segment_date]["weather_list"].append(segment["weather"][0]["description"])
             
+
+        if segment_hour == "08":
+            result[segment_date]["temperatures"]["morning"] = segment["main"]["temp"]
+        elif segment_hour == "14":
+            result[segment_date]["temperatures"]["afternoon"] = segment["main"]["temp"]
+        elif segment_hour == "20":
+            result[segment_date]["temperatures"]["evening"] = segment["main"]["temp"]
+        elif segment_hour == "02" and len(result) > 1:                
+            result[get_previous_date(segment_date)]["temperatures"]["overnight"] = segment["main"]["temp"]
             
-            if segment_hour == "21":
-                result[segment_date]["weather"] = simplify_weather_description(result[segment_date]["weather_list"])
+        result[segment_date]["weather_list"].append(segment["weather"][0]["description"])
+        
+        
+        if segment_hour == "11":
+            result[segment_date]["weather"] = simplify_weather_description(result[segment_date]["weather_list"])
 
     return result
+
+
 
 
 if __name__ == "__main__":
     test_data = load_weather_data_from_file()
     forecast_data = create_forecast_data(test_data)
+
     pp.pprint(forecast_data)
+
+
+    
    
 
 
